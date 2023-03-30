@@ -40,10 +40,13 @@ export class DataStructureController {
     @Param('name') name: DataStructureName,
     @Param('language') language: ProgrammingLanguage,
   ) {
+    const formattedName = name.replace('-', ' '),
+      formattedLanguage = language.replace('-', ' ');
+
     try {
       const details = await this.dataStructureService.createOrGetDetails(
-        name,
-        language,
+        formattedName,
+        formattedLanguage,
       );
 
       return res.status(200).json(details);
