@@ -19,6 +19,18 @@ export class DataStructureService {
     private readonly chatGptApiClient: ChatGptApiClient,
   ) {}
 
+  async getDataStructureList() {
+    const list = await this.dataStructureRepository.findDataStructureAll();
+
+    return list;
+  }
+
+  async getLanguageList() {
+    const list = await this.dataStructureRepository.findLanguageAll();
+
+    return list;
+  }
+
   async createOrGetDetails(
     name: DataStructureName,
     language: ProgrammingLanguage,

@@ -19,6 +19,20 @@ import { DataStructureName, ProgrammingLanguage } from 'src/types/types';
 export class DataStructureController {
   constructor(private readonly dataStructureService: DataStructureService) {}
 
+  @Get('/list')
+  async getDataStructureList(@Res() res: Response) {
+    const list = await this.dataStructureService.getDataStructureList();
+
+    return res.status(200).json(list);
+  }
+
+  @Get('language/list')
+  async getLanguageList(@Res() res: Response) {
+    const list = await this.dataStructureService.getLanguageList();
+
+    return res.status(200).json(list);
+  }
+
   @Get(':name/:language')
   @UseFilters(BadRequestExceptionFilter)
   async getDetails(

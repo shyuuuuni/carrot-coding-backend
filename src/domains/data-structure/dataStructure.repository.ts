@@ -20,6 +20,22 @@ export class DataStructureRepository {
     private dataStructureListModel: Model<DataStructureList>,
   ) {}
 
+  async findDataStructureAll(): Promise<string[]> {
+    const list = (
+      await this.dataStructureListModel.find({ type: 'data-structure' })
+    ).map(({ name }) => name);
+
+    return list;
+  }
+
+  async findLanguageAll(): Promise<string[]> {
+    const list = (
+      await this.dataStructureListModel.find({ type: 'programming-language' })
+    ).map(({ name }) => name);
+
+    return list;
+  }
+
   async existsByName(name: DataStructureName): Promise<boolean> {
     const existsName = await this.dataStructureListModel
       .exists({ type: 'data-structure', name: name })
