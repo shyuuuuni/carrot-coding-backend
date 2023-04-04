@@ -81,4 +81,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /carrot-coding-backend
-            docker compose up --force-recreate -d
+            docker compose up -d
