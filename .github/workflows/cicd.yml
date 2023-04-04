@@ -83,4 +83,4 @@ jobs:
           password: ${{ secrets.EC2_PASSWORD }}
           script: |
             cd /carrot-coding-backend
-            docker-compose up --force-recreate -d
+            docker compose up --force-recreate -d
