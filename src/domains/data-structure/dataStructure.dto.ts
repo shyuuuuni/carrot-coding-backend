@@ -1,10 +1,9 @@
 import { IsString } from 'class-validator';
-import { DataStructureName, ProgrammingLanguage } from 'src/types/types';
 
-export class DataStructureListDTO {
+export class UpdateDataStructureDto {
   @IsString()
-  name: DataStructureName;
+  name: string;
 
   @IsString()
-  language: ProgrammingLanguage;
+  language: string;
 }

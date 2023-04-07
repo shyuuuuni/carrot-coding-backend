@@ -1,101 +1,73 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import {
-  DataStructure,
-  DataStructureList,
-} from 'src/domains/data-structure/dataStructure.schema';
-import {
-  DataStructureDetails,
-  DataStructureName,
-  ProgrammingLanguage,
-} from 'src/types/types';
+import { Model, Types } from 'mongoose';
+import { DataStructureDetail } from 'src/domains/data-structure/dataStructureDetail.schema';
 
 @Injectable()
 export class DataStructureRepository {
   constructor(
-    @InjectModel(DataStructure.name)
-    private dataStructureModel: Model<DataStructure>,
-    @InjectModel(DataStructureList.name)
-    private dataStructureListModel: Model<DataStructureList>,
+    @InjectModel(DataStructureDetail.name)
+    private dataStructureDetailModel: Model<DataStructureDetail>,
   ) {}
 
-  async findDataStructureAll(): Promise<string[]> {
-    const list = (
-      await this.dataStructureListModel.find({ type: 'data-structure' })
-    ).map(({ name }) => name);
-
-    return list;
-  }
-
-  async findLanguageAll(): Promise<string[]> {
-    const list = (
-      await this.dataStructureListModel.find({ type: 'programming-language' })
-    ).map(({ name }) => name);
-
-    return list;
-  }
-
-  async existsByName(name: DataStructureName): Promise<boolean> {
-    const existsName = await this.dataStructureListModel
-      .exists({ type: 'data-structure', name: name })
+  async findAllByName(name: string) {
+    const document = await this.dataStructureDetailModel
+      .find({ $or: [{ 'name.kr': name }, { 'name.en': name }] })
       .exec();
 
-    return Boolean(existsName);
+    return document;
   }
 
-  async existsByLanguage(language: ProgrammingLanguage): Promise<boolean> {
-    const existsLanguage = await this.dataStructureListModel.exists({
-      type: 'programming-language',
-      name: language,
-    });
-    return Boolean(existsLanguage);
+  async findAll() {
+    const document = await this.dataStructureDetailModel.find({}).exec();
+
+    return document;
   }
 
-  async createOrUpdateList(
-    type: 'data-structure' | 'programming-language',
-    name: DataStructureName | ProgrammingLanguage,
-  ): Promise<boolean> {
-    const updated = await this.dataStructureListModel
-      .updateOne(
-        { type, name },
-        {
-          $set: {
-            type,
-            name,
-          },
-        },
-        { upsert: true },
-      )
-      .exec();
-    return updated.acknowledged;
-  }
-
-  async findOneByNameAndLanguage(
-    name: DataStructureName,
-    language: ProgrammingLanguage,
-  ) {
-    const entity = await this.dataStructureModel
-      .findOne({ name, language })
-      .exec();
-    return entity;
-  }
-
-  async saveDetails(
-    name: string,
-    language: ProgrammingLanguage,
-    details: DataStructureDetails,
-  ) {
-    const entity = await this.dataStructureModel.findOneAndUpdate(
-      { name, language },
-      {
-        name,
+  async findUnstableByNameAndLanguage(name: string, language: string) {
+    const unstableDocument = await this.dataStructureDetailModel
+      .findOne({
+        $or: [{ 'name.kr': name }, { 'name.en': name }],
         language,
-        details,
-        state: 'ok',
+        state: {
+          $ne: 'ok',
+        },
+      })
+      .exec();
+
+    return unstableDocument;
+  }
+
+  async findAllUnstable() {
+    const unstableDocuments = await this.dataStructureDetailModel
+      .find({
+        state: {
+          $ne: 'ok',
+        },
+      })
+      .exec();
+
+    return unstableDocuments;
+  }
+
+  async updateDetailById(
+    id: Types.ObjectId,
+    chatGptDetail: Pick<
+      DataStructureDetail,
+      'code' | 'complexity' | 'description'
+    >,
+  ) {
+    const updatedDocument = await this.dataStructureDetailModel.updateOne(
+      {
+        _id: id,
       },
-      { upsert: true, new: true },
+      {
+        state: 'ok',
+        reportedCount: 0,
+        ...chatGptDetail,
+      },
     );
-    return entity;
+
+    return updatedDocument.acknowledged;
   }
 }

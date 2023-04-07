@@ -50,11 +50,7 @@ export class ChatGptApiClient {
       finishReason = res.data.choices[0].finish_reason;
 
     this.logger.log(
-      'Chat GPT API Usage',
-      `id(${id})`,
-      `prompt_tokens(${usage.prompt_tokens})`,
-      `completion_tokens(${usage.completion_tokens})`,
-      `total_tokens(${usage.total_tokens})`,
+      `Chat GPT API Usage: id(${id}) - prompt_tokens(${usage.prompt_tokens}), completion_tokens(${usage.completion_tokens}), total_tokens(${usage.total_tokens})`,
     );
     if (finishReason !== 'stop') {
       throw new Error(

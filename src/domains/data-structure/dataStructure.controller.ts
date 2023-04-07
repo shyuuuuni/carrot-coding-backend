@@ -5,15 +5,14 @@ import {
   Get,
   InternalServerErrorException,
   Param,
-  Post,
+  Put,
   Res,
   UseFilters,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { DataStructureListDTO } from 'src/domains/data-structure/dataStructure.dto';
+import { UpdateDataStructureDto } from 'src/domains/data-structure/dataStructure.dto';
 import { DataStructureService } from 'src/domains/data-structure/dataStructure.service';
 import { BadRequestExceptionFilter } from 'src/exception-filters/BadRequestExceptionFilter';
-import { DataStructureName, ProgrammingLanguage } from 'src/types/types';
 
 @Controller('data-structure')
 export class DataStructureController {
@@ -21,34 +20,40 @@ export class DataStructureController {
 
   @Get('/list')
   async getDataStructureList(@Res() res: Response) {
-    const list = await this.dataStructureService.getDataStructureList();
+    const list = await this.dataStructureService.getAll();
 
     return res.status(200).json(list);
   }
 
-  @Get('language/list')
-  async getLanguageList(@Res() res: Response) {
-    const list = await this.dataStructureService.getLanguageList();
-
-    return res.status(200).json(list);
-  }
-
-  @Get(':name/:language')
-  @UseFilters(BadRequestExceptionFilter)
-  async getDetails(
+  @Put('/update')
+  async updateOne(
     @Res() res: Response,
-    @Param('name') name: DataStructureName,
-    @Param('language') language: ProgrammingLanguage,
+    @Body() updateDataStructureDto: UpdateDataStructureDto,
   ) {
+    const { name, language } = updateDataStructureDto;
+    const updatedDetail = await this.dataStructureService.updateOne(
+      name,
+      language,
+    );
+
+    return res.status(200).json(updatedDetail);
+  }
+
+  @Put('/update/all')
+  async updateAll(@Res() res: Response) {
+    const updatedDetails = await this.dataStructureService.updateAll();
+
+    return res.status(200).json(updatedDetails);
+  }
+
+  @Get(':name')
+  @UseFilters(BadRequestExceptionFilter)
+  async getDetails(@Res() res: Response, @Param('name') name: string) {
     // replace all '-' to ' '
-    const formattedName = name.replace(/-/gi, ' '),
-      formattedLanguage = language.replace(/-/gi, ' ');
+    const formattedName = name.replace(/-/gi, ' ');
 
     try {
-      const details = await this.dataStructureService.createOrGetDetails(
-        formattedName,
-        formattedLanguage,
-      );
+      const details = await this.dataStructureService.getOne(formattedName);
 
       return res.status(200).json(details);
     } catch (error) {
@@ -57,29 +62,5 @@ export class DataStructureController {
       }
       throw new InternalServerErrorException();
     }
-  }
-
-  @Post('language')
-  async createLanguageList(
-    @Body() dataStructureListDTO: Pick<DataStructureListDTO, 'language'>,
-  ) {
-    const success = this.dataStructureService.createList(
-      'programming-language',
-      dataStructureListDTO.language,
-    );
-
-    return success;
-  }
-
-  @Post()
-  async createDataStructureList(
-    @Body() dataStructureListDTO: Pick<DataStructureListDTO, 'name'>,
-  ) {
-    const success = this.dataStructureService.createList(
-      'data-structure',
-      dataStructureListDTO.name,
-    );
-
-    return success;
   }
 }
