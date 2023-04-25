@@ -49,8 +49,8 @@ export class DataStructureController {
   @Get(':name')
   @UseFilters(BadRequestExceptionFilter)
   async getDetails(@Res() res: Response, @Param('name') name: string) {
-    // replace all '-' to ' '
-    const formattedName = name.replace(/-/gi, ' ');
+    // replace all '+' to ' '
+    const formattedName = name.replace(/\+/gi, ' ');
 
     try {
       const details = await this.dataStructureService.getOne(formattedName);

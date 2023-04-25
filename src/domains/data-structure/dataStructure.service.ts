@@ -73,8 +73,8 @@ export class DataStructureService {
     }
     this.logger.log(`updateAll(${unstableDocuments.length})`);
 
-    // Split 15 docs per chunk
-    const chunks = chunkArray(unstableDocuments, 15);
+    // Split 10 docs per chunk
+    const chunks = chunkArray(unstableDocuments, 10);
     const updatedDocuments = [];
 
     // Request updates on a chunk
