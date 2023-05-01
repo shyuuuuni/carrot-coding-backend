@@ -22,4 +22,4 @@ import { AlgorithmService } from 'src/domains/algorithm/algorithm.service';
   controllers: [AlgorithmController],
   providers: [AlgorithmService, AlgorithmRepository],
 })
-export class DataStructureModule {}
+export class AlgorithmModule {}

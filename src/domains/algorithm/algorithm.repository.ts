@@ -9,4 +9,12 @@ export class AlgorithmRepository {
     @InjectModel(AlgorithmDetail.name)
     private algorithmDetailModel: Model<AlgorithmDetail>,
   ) {}
+
+  async findInfoAll() {
+    const infosDocument = await this.algorithmDetailModel
+      .find({ descriptionState: 'ok' }, 'name description')
+      .exec();
+
+    return infosDocument;
+  }
 }
