@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from 'openai';
+import { ChatGptRepository } from 'src/chat-gpt/chatGpt.repository';
+import { ChatGptDomain, ChatGptType } from 'src/types/types';
 
 @Injectable()
 export class ChatGptApiClient {
@@ -10,7 +12,10 @@ export class ChatGptApiClient {
   private openai: OpenAIApi;
   private requestConfiguration: CreateChatCompletionRequest;
 
-  constructor(readonly configService: ConfigService) {
+  constructor(
+    private readonly chatGptRepository: ChatGptRepository,
+    readonly configService: ConfigService,
+  ) {
     const configuration = new Configuration({
       apiKey: configService.get<string>('CHAT_GPT_API_KEY'),
     });
@@ -22,6 +27,17 @@ export class ChatGptApiClient {
       temperature: 0,
       messages: [],
     };
+  }
+
+  async getRequest(domain: ChatGptDomain, type: ChatGptType) {
+    const requestDocument = await this.chatGptRepository.findRequestOne(
+      domain,
+      type,
+    );
+    if (!requestDocument) {
+      return null;
+    }
+    return requestDocument;
   }
 
   async getAnswer(question: string, parameters: { [key: string]: string }) {
@@ -44,20 +60,24 @@ export class ChatGptApiClient {
       content: question,
     });
 
-    const res = await this.openai.createChatCompletion(requestConfiguration);
-    const id = res.data.id,
-      usage = res.data.usage,
-      finishReason = res.data.choices[0].finish_reason;
+    try {
+      const res = await this.openai.createChatCompletion(requestConfiguration);
+      const id = res.data.id,
+        usage = res.data.usage,
+        finishReason = res.data.choices[0].finish_reason;
 
-    this.logger.log(
-      `Chat GPT API Usage: id(${id}) - prompt_tokens(${usage.prompt_tokens}), completion_tokens(${usage.completion_tokens}), total_tokens(${usage.total_tokens})`,
-    );
-    if (finishReason !== 'stop') {
-      throw new Error(
-        `ChatGPT API responds ${finishReason} status. See: https://platform.openai.com/docs/guides/chat/introduction`,
+      this.logger.log(
+        `Chat GPT API Usage: id(${id}) - prompt_tokens(${usage.prompt_tokens}), completion_tokens(${usage.completion_tokens}), total_tokens(${usage.total_tokens})`,
       );
+      if (finishReason !== 'stop') {
+        throw new Error(
+          `ChatGPT API responds ${finishReason} status. See: https://platform.openai.com/docs/guides/chat/introduction`,
+        );
+      }
+      return res.data.choices[0].message.content;
+    } catch (e) {
+      this.logger.error(`Chat GPT request error`);
+      throw e;
     }
-
-    return res.data.choices[0].message.content;
   }
 }
