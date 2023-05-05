@@ -31,6 +31,7 @@ export class AlgorithmController {
     return res.status(200).json(updatedResult);
   }
 
+  @Post('/update/description/all')
   async updateDescriptionAll(@Res() res: Response) {
     const updatedResults = await this.algorithmService.updateDescriptionAll();
 
