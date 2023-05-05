@@ -111,7 +111,7 @@ export class AlgorithmService {
     const answer = await this.chatGptService.getAnswer(question, {
       ...parameters,
       algorithm: name,
-      language,
+      'programming-language': language,
     });
     const code: { code: string; complexity: { [key: string]: string } } =
       JSON.parse(answer);
