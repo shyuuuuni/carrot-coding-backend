@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChatGptApiClient } from 'src/chat-gpt/chatGptApiClient';
 import { AlgorithmRepository } from 'src/domains/algorithm/algorithm.repository';
+import { chunkArray } from 'src/utils/array';
 
 @Injectable()
 export class AlgorithmService {
@@ -47,5 +48,52 @@ export class AlgorithmService {
       );
 
     return updatedDocument;
+  }
+
+  async updateDescriptionAll() {
+    const targetDocuments = await this.algorithmRepository.findAll();
+    if (targetDocuments.length === 0) {
+      return [];
+    }
+    this.logger.log(`updateAll(${targetDocuments.length})`);
+
+    // 5개씩 나눠서 처리
+    const chunks = chunkArray(targetDocuments, 5);
+    const updateResults = [];
+
+    const { question, parameters } = await this.chatGptService.getRequest(
+      'algorithm',
+      'description',
+    );
+
+    // 청크 단위로 요청
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const updatePromise = chunk.map((document) => {
+        return this.chatGptService
+          .getAnswer(question, {
+            ...parameters,
+            algorithm: document.name.en,
+          })
+          .then((description) => {
+            return this.algorithmRepository.updateDescriptionById(
+              document._id,
+              description,
+            );
+          });
+      });
+
+      this.logger.log(`request chunks ${i + 1}/${chunks.length}`);
+      const results = await Promise.allSettled(updatePromise);
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          updateResults.push(result.value);
+        } else {
+          this.logger.error(result.reason);
+        }
+      });
+    }
+
+    return updateResults;
   }
 }

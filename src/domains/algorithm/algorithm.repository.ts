@@ -10,6 +10,12 @@ export class AlgorithmRepository {
     private algorithmDetailModel: Model<AlgorithmDetail>,
   ) {}
 
+  async findAll() {
+    const documents = await this.algorithmDetailModel.find().exec();
+
+    return documents;
+  }
+
   async findInfoAll() {
     const infosDocument = await this.algorithmDetailModel
       .find({ descriptionState: 'ok' }, 'name description')

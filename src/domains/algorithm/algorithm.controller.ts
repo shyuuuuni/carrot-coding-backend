@@ -21,10 +21,16 @@ export class AlgorithmController {
     @Body() updateDescriptionDto: UpdateDescriptionDto,
   ) {
     const { name } = updateDescriptionDto;
-    const unstableDocument = await this.algorithmService.updateDescriptionOne(
+    const updatedResult = await this.algorithmService.updateDescriptionOne(
       name,
     );
 
-    return res.status(200).json(unstableDocument);
+    return res.status(200).json(updatedResult);
+  }
+
+  async updateDescriptionAll(@Res() res: Response) {
+    const updatedResults = await this.algorithmService.updateDescriptionAll();
+
+    return res.status(200).json(updatedResults);
   }
 }
