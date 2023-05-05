@@ -21,9 +21,7 @@ export class AlgorithmService {
 
   async updateDescriptionOne(name: string) {
     // 1. 대상 document 검색
-    const targetDocument = await this.algorithmRepository.findDescriptionByName(
-      name,
-    );
+    const targetDocument = await this.algorithmRepository.findByName(name);
     if (!targetDocument) {
       return null;
     }
@@ -95,5 +93,35 @@ export class AlgorithmService {
     }
 
     return updateResults;
+  }
+
+  async updateCodeOne(name: string, language: string) {
+    // 1. 대상 document 검색
+    const targetDocument = await this.algorithmRepository.findByName(name);
+    if (!targetDocument) {
+      return null;
+    }
+    this.logger.log(`updateCodeOne: (${name})`);
+
+    // 2. ChatGPT로 code 생성
+    const { question, parameters } = await this.chatGptService.getRequest(
+      'algorithm',
+      'code',
+    );
+    const answer = await this.chatGptService.getAnswer(question, {
+      ...parameters,
+      algorithm: name,
+      language,
+    });
+    const code: { code: string; complexity: { [key: string]: string } } =
+      JSON.parse(answer);
+
+    // 3. DB 업데이트
+    const updatedDocument = await this.algorithmRepository.updateCodeById(
+      targetDocument._id,
+      { ...code, language, codeReportCount: 0, codeState: 'ok' },
+    );
+
+    return updatedDocument;
   }
 }

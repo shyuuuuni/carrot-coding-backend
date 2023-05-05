@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { AlgorithmDetail } from 'src/domains/algorithm/algorithm-detail.schema';
+import {
+  AlgorithmCode,
+  AlgorithmDetail,
+} from 'src/domains/algorithm/algorithm-detail.schema';
 
 @Injectable()
 export class AlgorithmRepository {
@@ -24,7 +27,7 @@ export class AlgorithmRepository {
     return infosDocument;
   }
 
-  async findDescriptionByName(name: string) {
+  async findByName(name: string) {
     const descriptionDocument = await this.algorithmDetailModel.findOne({
       $or: [{ 'name.kr': name }, { 'name.en': name }],
     });
@@ -39,6 +42,28 @@ export class AlgorithmRepository {
         { descriptionState: 'ok', descriptionReportCount: 0, description },
       )
       .exec();
+
+    return updatedDocument;
+  }
+
+  async updateCodeById(id: Types.ObjectId, code: AlgorithmCode) {
+    const targetDocument = await this.algorithmDetailModel
+      .findOne({
+        _id: id,
+      })
+      .exec();
+
+    const updatedCodes = targetDocument.codes.map((documentCode) => {
+      if (documentCode.language === code.language) {
+        return code;
+      }
+      return documentCode;
+    });
+
+    const updatedDocument = await this.algorithmDetailModel.updateOne(
+      { _id: id },
+      { codes: updatedCodes },
+    );
 
     return updatedDocument;
   }
