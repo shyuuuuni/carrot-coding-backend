@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { AlgorithmService } from 'src/domains/algorithm/algorithm.service';
 
 import { Response } from 'express';
@@ -18,7 +18,7 @@ export class AlgorithmController {
     return res.status(200).json(list);
   }
 
-  @Put('/update/description')
+  @Post('/update/description')
   async updateDescription(
     @Res() res: Response,
     @Body() updateDescriptionDto: UpdateDescriptionDto,
@@ -37,7 +37,7 @@ export class AlgorithmController {
     return res.status(200).json(updatedResults);
   }
 
-  @Put('/update/code')
+  @Post('/update/code')
   async updateCode(@Res() res: Response, @Body() updateCodeDto: UpdateCodeDto) {
     const { name, language } = updateCodeDto;
     const updatedResult = await this.algorithmService.updateCodeOne(
