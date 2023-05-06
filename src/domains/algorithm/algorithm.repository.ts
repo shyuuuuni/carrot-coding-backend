@@ -46,6 +46,14 @@ export class AlgorithmRepository {
     return updatedDocument;
   }
 
+  async updateCodesById(id: Types.ObjectId, codes: AlgorithmCode[]) {
+    const updatedDocument = await this.algorithmDetailModel
+      .updateOne({ _id: id }, { codes })
+      .exec();
+
+    return updatedDocument;
+  }
+
   async updateCodeById(id: Types.ObjectId, code: AlgorithmCode) {
     const targetDocument = await this.algorithmDetailModel
       .findOne({

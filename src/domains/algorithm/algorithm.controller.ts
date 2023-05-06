@@ -48,4 +48,11 @@ export class AlgorithmController {
 
     return updatedResult;
   }
+
+  @Post('/update/code/all')
+  async updateCodeAll(@Res() res: Response) {
+    const updatedResults = await this.algorithmService.updateCodeAll();
+
+    return res.status(200).json(updatedResults);
+  }
 }

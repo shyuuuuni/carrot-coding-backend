@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChatGptApiClient } from 'src/chat-gpt/chatGptApiClient';
+import { AlgorithmCode } from 'src/domains/algorithm/algorithm-detail.schema';
 import { AlgorithmRepository } from 'src/domains/algorithm/algorithm.repository';
 import { chunkArray } from 'src/utils/array';
 
@@ -53,7 +54,7 @@ export class AlgorithmService {
     if (targetDocuments.length === 0) {
       return [];
     }
-    this.logger.log(`updateAll(${targetDocuments.length})`);
+    this.logger.log(`updateDescriptionAll(${targetDocuments.length})`);
 
     // 5개씩 나눠서 처리
     const chunks = chunkArray(targetDocuments, 5);
@@ -123,5 +124,74 @@ export class AlgorithmService {
     );
 
     return updatedDocument;
+  }
+
+  async updateCodeAll() {
+    const targetDocuments = await this.algorithmRepository.findAll();
+    if (targetDocuments.length === 0) {
+      return [];
+    }
+    this.logger.log(`updateCodeAll(${targetDocuments.length})`);
+
+    // 5개씩 나눠서 처리
+    const chunks = chunkArray(targetDocuments, 5);
+    const updateResults = [];
+
+    const { question, parameters } = await this.chatGptService.getRequest(
+      'algorithm',
+      'code',
+    );
+
+    // 청크 단위로 요청
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+
+      // chunk에 포함된 document의 codes 속성을 업데이트하는 Promise 객체
+      const updatePromise = chunk.map(async (document) => {
+        const languages = document.codes.map(({ language }) => language);
+
+        // codes에 포함된 language 별로 ChatGPT 답변을 업데이트
+        const updateCodes: AlgorithmCode[] = await Promise.all(
+          languages.map(async (language) => {
+            const answer = await this.chatGptService.getAnswer(question, {
+              ...parameters,
+              algorithm: document.name.en,
+              'programming-language': language,
+            });
+            const code: {
+              code: string;
+              complexity: { [key: string]: string };
+            } = JSON.parse(answer);
+
+            return {
+              ...code,
+              language,
+              codeReportCount: 0,
+              codeState: 'ok',
+            };
+          }),
+        );
+
+        // document의 codes를 일괄 업데이트
+        const results = await this.algorithmRepository.updateCodesById(
+          document._id,
+          updateCodes,
+        );
+
+        return results;
+      });
+
+      this.logger.log(`request chunks ${i + 1}/${chunks.length}`);
+      const results = await Promise.allSettled(updatePromise);
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          updateResults.push(result.value);
+        } else {
+          this.logger.error(result.reason);
+        }
+      });
+    }
+
+    return updateResults;
   }
 }
