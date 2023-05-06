@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Res,
+  UseFilters,
+} from '@nestjs/common';
 import { AlgorithmService } from 'src/domains/algorithm/algorithm.service';
 
 import { Response } from 'express';
@@ -6,10 +16,28 @@ import {
   UpdateCodeDto,
   UpdateDescriptionDto,
 } from 'src/domains/algorithm/algorithm.dto';
+import { BadRequestExceptionFilter } from 'src/exception-filters/BadRequestExceptionFilter';
 
 @Controller('/algorithms')
 export class AlgorithmController {
   constructor(private readonly algorithmService: AlgorithmService) {}
+
+  @Get(':name')
+  @UseFilters(BadRequestExceptionFilter)
+  async getDetail(@Res() res: Response, @Param('name') name: string) {
+    const formattedName = name.replace(/\+/gi, ' ');
+
+    try {
+      const detail = await this.algorithmService.get(formattedName);
+
+      return res.status(200).json(detail);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException();
+    }
+  }
 
   @Get('/infos')
   async getAlgorithmInfoList(@Res() res: Response) {

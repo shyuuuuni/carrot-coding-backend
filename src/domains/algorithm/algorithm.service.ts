@@ -14,6 +14,12 @@ export class AlgorithmService {
     private readonly chatGptService: ChatGptApiClient,
   ) {}
 
+  async get(name: string) {
+    const document = await this.algorithmRepository.findByName(name);
+
+    return document;
+  }
+
   async getInfoAll() {
     const documents = await this.algorithmRepository.findInfoAll();
 
