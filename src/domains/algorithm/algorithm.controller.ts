@@ -22,7 +22,14 @@ import { BadRequestExceptionFilter } from 'src/exception-filters/BadRequestExcep
 export class AlgorithmController {
   constructor(private readonly algorithmService: AlgorithmService) {}
 
-  @Get(':name')
+  @Get()
+  async getAlgorithmInfoList(@Res() res: Response) {
+    const list = await this.algorithmService.getInfoAll();
+
+    return res.status(200).json(list);
+  }
+
+  @Get('/:name')
   @UseFilters(BadRequestExceptionFilter)
   async getDetail(@Res() res: Response, @Param('name') name: string) {
     const formattedName = name.replace(/\+/gi, ' ');
@@ -37,13 +44,6 @@ export class AlgorithmController {
       }
       throw new InternalServerErrorException();
     }
-  }
-
-  @Get('/infos')
-  async getAlgorithmInfoList(@Res() res: Response) {
-    const list = await this.algorithmService.getInfoAll();
-
-    return res.status(200).json(list);
   }
 
   @Post('/update/description')
@@ -74,7 +74,7 @@ export class AlgorithmController {
       language,
     );
 
-    return updatedResult;
+    return res.status(200).json(updatedResult);
   }
 
   @Post('/update/code/all')
