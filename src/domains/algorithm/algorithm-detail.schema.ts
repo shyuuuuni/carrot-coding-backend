@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-type DataState = 'created' | 'ok';
-type AlgorithmCode = {
+export type DataState = 'created' | 'ok';
+export type AlgorithmCode = {
+  code: string;
   language: string;
   complexity: { [key: string]: string };
   codeReportCount: number;

@@ -24,7 +24,7 @@ export class ChatGptApiClient {
     this.openai = new OpenAIApi(configuration);
     this.requestConfiguration = {
       model: 'gpt-3.5-turbo',
-      temperature: 0,
+      temperature: 0.2,
       messages: [],
     };
   }

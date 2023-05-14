@@ -5,7 +5,7 @@ import {
   Get,
   InternalServerErrorException,
   Param,
-  Put,
+  Post,
   Res,
   UseFilters,
 } from '@nestjs/common';
@@ -25,7 +25,7 @@ export class DataStructureController {
     return res.status(200).json(list);
   }
 
-  @Put('/update')
+  @Post('/update')
   async updateOne(
     @Res() res: Response,
     @Body() updateDataStructureDto: UpdateDataStructureDto,
@@ -39,7 +39,7 @@ export class DataStructureController {
     return res.status(200).json(updatedDetail);
   }
 
-  @Put('/update/all')
+  @Post('/update/all')
   async updateAll(@Res() res: Response) {
     const updatedDetails = await this.dataStructureService.updateAll();
 
