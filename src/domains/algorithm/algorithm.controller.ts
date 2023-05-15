@@ -13,6 +13,7 @@ import { AlgorithmService } from 'src/domains/algorithm/algorithm.service';
 
 import { Response } from 'express';
 import {
+  UpdateAllDto,
   UpdateCodeDto,
   UpdateDescriptionDto,
 } from 'src/domains/algorithm/algorithm.dto';
@@ -60,8 +61,14 @@ export class AlgorithmController {
   }
 
   @Post('/update/description/all')
-  async updateDescriptionAll(@Res() res: Response) {
-    const updatedResults = await this.algorithmService.updateDescriptionAll();
+  async updateDescriptionAll(
+    @Res() res: Response,
+    @Body() updateAllDto: UpdateAllDto,
+  ) {
+    const { unstableOnly } = updateAllDto;
+    const updatedResults = await this.algorithmService.updateDescriptionAll(
+      unstableOnly,
+    );
 
     return res.status(200).json(updatedResults);
   }
@@ -78,8 +85,14 @@ export class AlgorithmController {
   }
 
   @Post('/update/code/all')
-  async updateCodeAll(@Res() res: Response) {
-    const updatedResults = await this.algorithmService.updateCodeAll();
+  async updateCodeAll(
+    @Res() res: Response,
+    @Body() updateAllDto: UpdateAllDto,
+  ) {
+    const { unstableOnly } = updateAllDto;
+    const updatedResults = await this.algorithmService.updateCodeAll(
+      unstableOnly,
+    );
 
     return res.status(200).json(updatedResults);
   }

@@ -19,6 +19,18 @@ export class AlgorithmRepository {
     return documents;
   }
 
+  async findAllUnstable() {
+    const documents = await this.algorithmDetailModel
+      .find({
+        descriptionState: {
+          $ne: 'ok',
+        },
+      })
+      .exec();
+
+    return documents;
+  }
+
   async findInfoAll() {
     const infosDocument = await this.algorithmDetailModel
       .find({ descriptionState: 'ok' }, 'name description')
