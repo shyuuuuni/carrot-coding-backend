@@ -55,8 +55,11 @@ export class AlgorithmService {
     return updatedDocument;
   }
 
-  async updateDescriptionAll() {
-    const targetDocuments = await this.algorithmRepository.findAll();
+  async updateDescriptionAll(unstableOnly: boolean) {
+    const targetDocuments = unstableOnly
+      ? await this.algorithmRepository.findAllUnstable()
+      : await this.algorithmRepository.findAll();
+
     if (targetDocuments.length === 0) {
       return [];
     }
@@ -132,7 +135,7 @@ export class AlgorithmService {
     return updatedDocument;
   }
 
-  async updateCodeAll() {
+  async updateCodeAll(unstableOnly: boolean) {
     const targetDocuments = await this.algorithmRepository.findAll();
     if (targetDocuments.length === 0) {
       return [];
@@ -154,24 +157,26 @@ export class AlgorithmService {
 
       // chunk에 포함된 document의 codes 속성을 업데이트하는 Promise 객체
       const updatePromise = chunk.map(async (document) => {
-        const languages = document.codes.map(({ language }) => language);
-
         // codes에 포함된 language 별로 ChatGPT 답변을 업데이트
         const updateCodes: AlgorithmCode[] = await Promise.all(
-          languages.map(async (language) => {
+          document.codes.map(async (code) => {
+            if (unstableOnly && code.codeState === 'ok') {
+              return code;
+            }
+
             const answer = await this.chatGptService.getAnswer(question, {
               ...parameters,
               algorithm: document.name.en,
-              'programming-language': language,
+              'programming-language': code.language,
             });
-            const code: {
+            const generatedCode: {
               code: string;
               complexity: { [key: string]: string };
             } = JSON.parse(answer);
 
             return {
-              ...code,
-              language,
+              ...generatedCode,
+              language: code.language,
               codeReportCount: 0,
               codeState: 'ok',
             };

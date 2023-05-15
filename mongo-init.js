@@ -131,7 +131,7 @@ algorithms.forEach(({ kr, en }) => {
   };
 
   languages.forEach((language) => {
-    codes.push({
+    query.codes.push({
       code: '',
       language,
       complexity: {},
